@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Atlas Queue",
+  "version": "1.0.0",
+  "description": "Queue and auto-send messages to ChatGPT Atlas",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["https://atlas.openai.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["https://atlas.openai.com/*"],
+    "js": ["content.js"]
+  }],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
