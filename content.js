@@ -11,25 +11,55 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
 
 function sendMessage(text) {
   return new Promise((resolve) => {
-    const input = document.querySelector('textarea[placeholder*="Message"], textarea');
-    const button = document.querySelector('button[type="submit"], button[aria-label*="Send"]');
+    // Wait for Atlas to be ready (not streaming) before attempting to send
+    waitForReady().then((ready) => {
+      if (!ready) {
+        resolve({ success: false, error: 'Atlas not ready (timed out waiting for submit button)' });
+        return;
+      }
 
-    if (!input || !button) {
-      resolve({ success: false, error: 'UI elements not found' });
-      return;
-    }
+      const input = document.querySelector('textarea[placeholder*="Message"], textarea');
+      const button = document.querySelector('button[type="submit"], button[aria-label*="Send"]');
 
-    input.value = text;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+      if (!input || !button) {
+        resolve({ success: false, error: 'UI elements not found' });
+        return;
+      }
 
-    setTimeout(() => {
-      button.click();
+      input.value = text;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
 
-      // Wait for response to complete
-      waitForResponse().then(() => {
-        resolve({ success: true });
-      });
-    }, 100);
+      setTimeout(() => {
+        button.click();
+
+        // Wait for response to complete
+        waitForResponse().then(() => {
+          resolve({ success: true });
+        });
+      }, 100);
+    });
+  });
+}
+
+// Poll for Atlas to be ready (submit button available, no streaming)
+// Retries up to ~5 seconds with 200ms intervals
+function waitForReady() {
+  return new Promise((resolve) => {
+    let attempts = 0;
+    const maxAttempts = 25; // 25 * 200ms = 5s
+    const check = () => {
+      if (isReady()) {
+        resolve(true);
+        return;
+      }
+      attempts++;
+      if (attempts >= maxAttempts) {
+        resolve(false);
+        return;
+      }
+      setTimeout(check, 200);
+    };
+    check();
   });
 }
 

@@ -5,23 +5,42 @@ document.getElementById('add').onclick = async () => {
   const text = messageInput.value.trim();
   if (!text) return;
 
-  await chrome.runtime.sendMessage({ action: 'add', text });
-  messageInput.value = '';
-  loadQueue();
+  try {
+    await chrome.runtime.sendMessage({ action: 'add', text });
+    messageInput.value = '';
+    loadQueue();
+  } catch (err) {
+    console.error('Failed to send message to background:', err);
+  }
 };
 
 document.getElementById('start').onclick = async () => {
-  await chrome.runtime.sendMessage({ action: 'start' });
-  setTimeout(loadQueue, 1000);
+  try {
+    await chrome.runtime.sendMessage({ action: 'start' });
+    setTimeout(loadQueue, 1000);
+  } catch (err) {
+    console.error('Failed to send start to background:', err);
+  }
 };
 
 document.getElementById('clear').onclick = async () => {
-  await chrome.runtime.sendMessage({ action: 'clear' });
-  loadQueue();
+  try {
+    await chrome.runtime.sendMessage({ action: 'clear' });
+    loadQueue();
+  } catch (err) {
+    console.error('Failed to send clear to background:', err);
+  }
 };
 
 async function loadQueue() {
-  const { queue } = await chrome.runtime.sendMessage({ action: 'get' });
+  let response;
+  try {
+    response = await chrome.runtime.sendMessage({ action: 'get' });
+  } catch (err) {
+    console.error('Failed to load queue from background:', err);
+    return;
+  }
+  const { queue } = response;
 
   queueDiv.innerHTML = queue.length === 0
     ? '<p style="color: #999;">Queue is empty</p>'
