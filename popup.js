@@ -32,6 +32,12 @@ document.getElementById('clear').onclick = async () => {
   }
 };
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 async function loadQueue() {
   let response;
   try {
@@ -45,9 +51,9 @@ async function loadQueue() {
   queueDiv.innerHTML = queue.length === 0
     ? '<p style="color: #999;">Queue is empty</p>'
     : queue.map(item => `
-        <div class="queue-item ${item.status}">
-          <div>${item.text.substring(0, 100)}${item.text.length > 100 ? '...' : ''}</div>
-          <div class="status">${item.status}${item.error ? ': ' + item.error : ''}</div>
+        <div class="queue-item ${escapeHtml(item.status)}">
+          <div>${escapeHtml(item.text.substring(0, 100))}${item.text.length > 100 ? '...' : ''}</div>
+          <div class="status">${escapeHtml(item.status)}${item.error ? ': ' + escapeHtml(item.error) : ''}</div>
         </div>
       `).join('');
 }
