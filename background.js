@@ -1,9 +1,15 @@
 let queue = [];
 let processing = false;
 
-// Load queue on startup
+// Load queue on startup; reset any items stuck in 'sending' (service worker may
+// have terminated mid-process, leaving them in a permanently stuck state).
 chrome.storage.local.get(['queue'], (result) => {
-  if (result.queue) queue = result.queue;
+  if (result.queue) {
+    queue = result.queue.map((item) =>
+      item.status === 'sending' ? { ...item, status: 'pending' } : item
+    );
+    saveQueue();
+  }
 });
 
 // Listen for messages from popup
